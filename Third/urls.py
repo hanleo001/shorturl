@@ -23,5 +23,5 @@ urlpatterns = [
     path('index/', views.index),
     path('shorturl/', views.shorturl),
     path('logout/', views.logout),
-    re_path(r'^a/(.*)/$', views.jump)
+    re_path(r'^(.*)/$', views.jump),
 ]

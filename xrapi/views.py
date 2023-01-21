@@ -1,3 +1,5 @@
+from Third.settings import DOMAIN
+
 from django.shortcuts import redirect, render
 from django.http import HttpRequest, HttpResponseRedirect
 from xrapi import models
@@ -43,6 +45,11 @@ def index(request):
 
 
 def exist_surl(surl):
+    used_url = ['login', '', 'index', 'shorturl', 'logout']
+    if surl in used_url:
+        return True
+    if surl[0:5] == 'admin':
+        return True
     surl_obj = models.Shorturl.objects.filter(surl=surl)
     if surl_obj:
         return True
@@ -61,18 +68,19 @@ def randurl():
 
 @login_required(login_url='/login/')
 def shorturl(request):
+    base_url = DOMAIN + '/'
     if request.method == 'POST' and request.POST.get('url'):
         default_url = randurl()
         surl = request.POST.get("surl") or default_url
         if exist_surl(surl):
-            return render(request, 'shorturl.html', {'res': "您输入的短链接已占用"})
+            return render(request, 'shorturl.html', {'base_url': base_url, 'res': "您输入的短链接已占用"})
         url_obj = models.Shorturl(url=request.POST.get('url'), surl=surl)
         url_obj.created_user = request.user.username
         url_obj.save()
-        rurl = 'https://t.leoh.top/a/' + surl + '/'
+        rurl = base_url + surl + '/'
         return render(request, 'shorturl.html',
-                      {'surl': surl, 'res': "成功生成", 'ss': '您生成的短链接为：', 'rurl': rurl})
-    return render(request, 'shorturl.html')
+                      {'base_url': base_url, 'surl': surl, 'res': "成功生成", 'ss': '您生成的短链接为：', 'rurl': rurl})
+    return render(request, 'shorturl.html', {'base_url': base_url})
 
 
 def jump(request, surl):
