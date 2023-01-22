@@ -9,7 +9,7 @@ from django.contrib.auth import login as lg
 from django.contrib.auth import logout as lgo
 from random import randint
 from django.contrib.auth.decorators import login_required
-
+from django.contrib.auth.models import User
 
 def setpassword(password):
     md5 = hashlib.md5()
@@ -45,7 +45,7 @@ def index(request):
 
 
 def exist_surl(surl):
-    used_url = ['login', '', 'index', 'shorturl', 'logout']
+    used_url = ['login', '', 'index', 'shorturl', 'logout','register']
     if surl in used_url:
         return True
     if surl[0:5] == 'admin':
@@ -86,6 +86,27 @@ def shorturl(request):
 def jump(request, surl):
     if exist_surl(surl):
         surl_obj = models.Shorturl.objects.filter(surl=surl)[0]
+        surl_obj.click_times+=1
+        surl_obj.save()
         return redirect(surl_obj.url)
     else:
         return render(request, 'no_url.html')
+
+
+def register(request):
+    if request.method == 'POST' and request.POST:
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        email = request.POST.get('email')
+        inv_code = request.POST.get('inv_code')
+        inv_code_obj = models.Invitation_code.objects.filter(code=inv_code)
+        if inv_code_obj:
+            inv_code_obj = inv_code_obj[0]
+            if inv_code_obj.timesused < inv_code_obj.timeslimit:
+                inv_code_obj.timesused+=1
+                inv_code_obj.save()
+                User.objects.create_user(username=username, password=password, email=email)
+                return render(request, 'register.html', {'ss': '结果', 'rurl': '注册成功'})
+            return render(request, 'register.html', {'ss': "结果", "rurl": '邀请码已失效'})
+        return render(request, 'register.html', {'ss': '结果','rurl': '邀请码不存在'})
+    return render(request, "register.html")
