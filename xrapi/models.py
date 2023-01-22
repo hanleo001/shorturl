@@ -8,7 +8,7 @@ class Shorturl(models.Model):
     surl = models.CharField(max_length=128)
     date = models.DateTimeField(max_length=64, blank=True, default=timezone.now)
     created_user = models.CharField(max_length=64, default='someone')
-    click_times = models.IntegerField('访问次数',max_length=1024,default=0)
+    click_times = models.IntegerField('访问次数',default=0)
     def __str__(self):
         return self.surl
 
